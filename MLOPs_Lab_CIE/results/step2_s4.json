@@ -1,0 +1,13 @@
+{
+  "health_endpoint": "/status",
+  "predict_endpoint": "/predict",
+  "port": 8500,
+  "health_response": {"status": "healthy", "model_loaded": true},
+  "test_input": {
+    "patients_ahead": 10,
+    "staff_count": 10,
+    "is_emergency": 0,
+    "dept_load": 3
+  },
+  "prediction": 0.0
+}
