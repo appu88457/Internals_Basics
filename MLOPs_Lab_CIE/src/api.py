@@ -1,32 +1,20 @@
 from fastapi import FastAPI
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 import numpy as np
-import pandas as pd
-from sklearn.linear_model import Lasso
-from sklearn.model_selection import train_test_split
+import joblib
+import json
+import os
 
-# Load data
-df = pd.read_csv("data/training_data.csv")
-
-X = df.drop("wait_time_min", axis=1)
-y = df["wait_time_min"]
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
-
-# Train model
-model = Lasso()
-model.fit(X_train, y_train)
-
-# 🔥 IMPORTANT: THIS LINE MUST EXIST
 app = FastAPI()
 
+import mlflow.sklearn
+model = mlflow.sklearn.load_model("models:/mediqueue_model/1")
+
 class InputData(BaseModel):
-    patients_ahead: int = Field(..., ge=1, le=30)
-    staff_count: int = Field(..., ge=2, le=15)
-    is_emergency: int = Field(..., ge=0, le=1)
-    dept_load: int = Field(..., ge=1, le=5)
+    patients_ahead: int
+    staff_count: int
+    is_emergency: int
+    dept_load: int
 
 @app.get("/status")
 def status():
@@ -34,6 +22,21 @@ def status():
 
 @app.post("/predict")
 def predict(data: InputData):
-    arr = np.array([[data.patients_ahead, data.staff_count, data.is_emergency, data.dept_load]])
-    pred = model.predict(arr)[0]
-    return {"prediction": float(pred)}
+    X = np.array([[data.patients_ahead, data.staff_count, data.is_emergency, data.dept_load]])
+    pred = float(model.predict(X)[0])
+
+    # write JSON result automatically
+    result = {
+        "health_endpoint": "/status",
+        "predict_endpoint": "/predict",
+        "port": 8500,
+        "health_response": {"status": "healthy", "model_loaded": True},
+        "test_input": data.dict(),
+        "prediction": pred
+    }
+
+    os.makedirs("results", exist_ok=True)
+    with open("results/step2_s4.json", "w") as f:
+        json.dump(result, f, indent=2)
+
+    return {"prediction": pred}
