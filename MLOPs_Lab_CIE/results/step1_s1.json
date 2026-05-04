@@ -1,0 +1,18 @@
+{
+    "experiment_name": "mediqueue-wait-time-min",
+    "models": [
+        {
+            "name": "Lasso",
+            "mae": 4.881323696107256,
+            "rmse": 5.605621337816251
+        },
+        {
+            "name": "RandomForest",
+            "mae": 8.678040000000001,
+            "rmse": 10.31070649005198
+        }
+    ],
+    "best_model": "Lasso",
+    "best_metric_name": "rmse",
+    "best_metric_value": 5.605621337816251
+}
